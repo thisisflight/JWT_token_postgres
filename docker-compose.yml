@@ -1,0 +1,42 @@
+version: "3.7"
+
+services:
+
+  db:
+    image: postgres
+    container_name: jwtdb
+    ports:
+      - "5432:5432"
+    networks:
+      - jwtnetwork
+    volumes:
+      - jwt:/var/lib/postgresql/data
+    restart: always
+    env_file:
+      - jwt_auth/.env
+
+
+  app:
+    build: .
+    container_name: authapp
+    ports:
+      - "8000:8000"
+    command: python manage.py runserver 0.0.0.0:8000
+    networks:
+      - jwtnetwork
+    volumes:
+      - .:/usr/bin/authapp
+    env_file:
+      - jwt_auth/.env
+    depends_on:
+      - db
+    links:
+      - "db:db"
+
+
+networks:
+  jwtnetwork:
+    driver: bridge
+
+volumes:
+  jwt:
